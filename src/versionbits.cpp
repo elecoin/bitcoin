@@ -176,6 +176,9 @@ public:
 
 ThresholdState VersionBitsState(const CBlockIndex* pindexPrev, const Consensus::Params& params, Consensus::DeploymentPos pos, VersionBitsCache& cache)
 {
+	if (pos == Consensus::DEPLOYMENT_SEGWIT) return THRESHOLD_ACTIVE;
+	if (pos == Consensus::DEPLOYMENT_CSV) return THRESHOLD_ACTIVE;
+	if (pos == Consensus::DEPLOYMENT_TESTDUMMY) return THRESHOLD_ACTIVE;
     return VersionBitsConditionChecker(pos).GetStateFor(pindexPrev, params, cache.caches[pos]);
 }
 

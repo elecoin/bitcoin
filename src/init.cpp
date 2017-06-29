@@ -937,6 +937,7 @@ bool AppInitParameterInteraction()
         mempool.setSanityCheck(1.0 / ratio);
     }
     fCheckBlockIndex = GetBoolArg("-checkblockindex", chainparams.DefaultConsistencyChecks());
+    //elecoin: open checkpoints, but clear checkpoints data
     fCheckpointsEnabled = GetBoolArg("-checkpoints", DEFAULT_CHECKPOINTS_ENABLED);
 
     hashAssumeValid = uint256S(GetArg("-assumevalid", chainparams.GetConsensus().defaultAssumeValid.GetHex()));

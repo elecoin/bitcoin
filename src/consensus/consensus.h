@@ -12,7 +12,7 @@
 static const unsigned int BIP102_FORK_BUFFER = (144 * 90);
 
 /** The maximum allowed size for a serialized block, in bytes (only for buffer size limits) */
-static const unsigned int MAX_BLOCK_SERIALIZED_SIZE = (8 * 1000 * 1000);
+static const unsigned int MAX_BLOCK_SERIALIZED_SIZE = (8 * 8 * 1000 * 1000);
 
 /** The maximum allowed size for a block excluding witness data, in bytes (network rule) */
 static inline bool BIP102active(bool fSegwitSeasoned)
@@ -29,7 +29,7 @@ inline unsigned int MaxBlockBaseSize(bool fSegwitSeasoned)
     if (!BIP102active(fSegwitSeasoned))
         return MAX_LEGACY_BLOCK_SIZE;
 
-    return (2 * 1000 * 1000);
+    return (2 * 8 * 1000 * 1000);
 }
 
 inline unsigned int MaxBlockBaseSize()
@@ -39,7 +39,7 @@ inline unsigned int MaxBlockBaseSize()
 
 
 /** The maximum allowed number of signature check operations in a block (network rule) */
-static const uint64_t MAX_BLOCK_BASE_SIGOPS = 20000;
+static const uint64_t MAX_BLOCK_BASE_SIGOPS = 20000 * 8;
 inline int64_t MaxBlockSigOpsCost(bool fSegwitSeasoned)
 {
     if (!BIP102active(fSegwitSeasoned))
@@ -65,7 +65,7 @@ inline unsigned int MaxBlockWeight()
 }
 
 /** The maximum allowed number of transactions per block */
-static const unsigned int MAX_BLOCK_VTX_SIZE = 1000000;
+static const unsigned int MAX_BLOCK_VTX_SIZE = 1000000 * 8;
 
 /** The minimum allowed size for a transaction */
 static const unsigned int MIN_TRANSACTION_BASE_SIZE = 10;
