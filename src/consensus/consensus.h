@@ -26,8 +26,8 @@ static inline bool BIP102active(bool fSegwitSeasoned)
 static const unsigned int MAX_LEGACY_BLOCK_SIZE = (1 * 1000 * 1000);
 inline unsigned int MaxBlockBaseSize(bool fSegwitSeasoned)
 {
-    if (!BIP102active(fSegwitSeasoned))
-        return MAX_LEGACY_BLOCK_SIZE;
+//    if (!BIP102active(fSegwitSeasoned))
+//        return MAX_LEGACY_BLOCK_SIZE;
 
     return (2 * 8 * 1000 * 1000);
 }
@@ -42,8 +42,8 @@ inline unsigned int MaxBlockBaseSize()
 static const uint64_t MAX_BLOCK_BASE_SIGOPS = 20000 * 8;
 inline int64_t MaxBlockSigOpsCost(bool fSegwitSeasoned)
 {
-    if (!BIP102active(fSegwitSeasoned))
-        return (MAX_BLOCK_BASE_SIGOPS * 4 /* WITNESS_SCALE_FACTOR */);
+//    if (!BIP102active(fSegwitSeasoned))
+//        return (MAX_BLOCK_BASE_SIGOPS * 4 /* WITNESS_SCALE_FACTOR */);
 
     return ((2 * MAX_BLOCK_BASE_SIGOPS) * 4 /* WITNESS_SCALE_FACTOR */);
 }

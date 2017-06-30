@@ -2942,8 +2942,8 @@ bool IsWitnessSeasoned(const CBlockIndex* pindexPrev, const Consensus::Params& p
 
     const int nHeight = pindexPrev->nHeight + 1;
 
-    if (nHeight < (int)BIP102_FORK_BUFFER)
-      return false;
+//    if (nHeight < (int)BIP102_FORK_BUFFER)
+//      return false;
 
     const CBlockIndex* pindexForkBuffer = pindexPrev->GetAncestor(nHeight - BIP102_FORK_BUFFER);
 
