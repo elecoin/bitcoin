@@ -148,7 +148,7 @@ public:
         fRequireStandard = true;
         fMineBlocksOnDemand = false;
 
-        checkpointData = (CCheckpointData) {
+//        checkpointData = (CCheckpointData) {
 //            boost::assign::map_list_of
 //            ( 11111, uint256S("0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d"))
 //            ( 33333, uint256S("0x000000002dd5588a74784eaa7ab0507a18ad16a236e7b1ce69f00d7ddfb5d0a6"))
@@ -163,7 +163,7 @@ public:
 //            (250000, uint256S("0x000000000000003887df1f29024b06fc2200b55f8af8f35453d7be294df2d214"))
 //            (279000, uint256S("0x0000000000000001ae8c72a0b0c301f67e3afca10e819efa9041e458e9bd7e40"))
 //            (295000, uint256S("0x00000000000000004d9b4ef50f0f9d686fd69db2e03af35a100370c64632a983"))
-        };
+//        };
 
         chainTxData = ChainTxData{
             // Data as of block 00000000000000000166d612d5595e2b1cd88d71d695fc580af64d8da8658c23 (height 446482).
@@ -252,10 +252,10 @@ public:
         fMineBlocksOnDemand = false;
 
 
-        checkpointData = (CCheckpointData) {
+//        checkpointData = (CCheckpointData) {
 //            boost::assign::map_list_of
 //            ( 10001, uint256S("00000000fb7c0a2aeb5f1244e81921b84b7ac770004543144e10c2284f89bfd8")),
-        };
+//        };
 
         chainTxData = ChainTxData{
             1497295460,
@@ -330,10 +330,10 @@ public:
         fRequireStandard = false;
         fMineBlocksOnDemand = true;
 
-        checkpointData = (CCheckpointData){
-            boost::assign::map_list_of
-            ( 0, uint256S("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"))
-        };
+//        checkpointData = (CCheckpointData){
+//            boost::assign::map_list_of
+//            ( 0, uint256S("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"))
+//        };
 
         chainTxData = ChainTxData{
             0,
