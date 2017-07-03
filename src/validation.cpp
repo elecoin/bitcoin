@@ -1193,11 +1193,10 @@ bool IsInitialBlockDownload()
         return true;
     if (chainActive.Tip() == NULL)
         return true;
-    //temporary comment out for testing usage
-//    if (chainActive.Tip()->nChainWork < UintToArith256(chainParams.GetConsensus().nMinimumChainWork))
-//        return true;
-//    if (chainActive.Tip()->GetBlockTime() < (GetTime() - nMaxTipAge))
-//        return true;
+    if (chainActive.Tip()->nChainWork < UintToArith256(chainParams.GetConsensus().nMinimumChainWork))
+        return true;
+    if (chainActive.Tip()->GetBlockTime() < (GetTime() - nMaxTipAge))
+        return true;
     latchToFalse.store(true, std::memory_order_relaxed);
     return false;
 }
@@ -2942,10 +2941,7 @@ bool IsWitnessSeasoned(const CBlockIndex* pindexPrev, const Consensus::Params& p
 
     const int nHeight = pindexPrev->nHeight + 1;
 
-//    if (nHeight < (int)BIP102_FORK_BUFFER)
-//      return false;
-
-    const CBlockIndex* pindexForkBuffer = pindexPrev->GetAncestor(nHeight - BIP102_FORK_BUFFER);
+    const CBlockIndex* pindexForkBuffer = pindexPrev->GetAncestor(nHeight - params.BIP102HeightDelta);
 
     return (VersionBitsState(pindexForkBuffer, params, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) == THRESHOLD_ACTIVE);
 }
@@ -3074,6 +3070,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
     //   multiple, the last one is used.
     bool fHaveWitness = false;
     bool fSegwitSeasoned = false;
+	bool fBIP102FirstBlock = false;
     bool fSegWitActive = (VersionBitsState(pindexPrev, consensusParams, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) == THRESHOLD_ACTIVE);
     if (fSegWitActive) {
         int commitpos = GetWitnessCommitmentIndex(block);
@@ -3093,12 +3090,27 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
             fHaveWitness = true;
         }
 
-        fSegwitSeasoned = IsWitnessSeasoned(pindexPrev, consensusParams);
+        // Look back to test SegWit activation period
+        const CBlockIndex* pindexForkBuffer = pindexPrev ? pindexPrev->GetAncestor(nHeight - consensusParams.BIP102HeightDelta) : NULL;
+        fSegwitSeasoned = (VersionBitsState(pindexForkBuffer, consensusParams, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) == THRESHOLD_ACTIVE);
+
+        // Look back one more block, to detect edge
+        if (fSegwitSeasoned) {
+            assert(pindexForkBuffer);
+            const CBlockIndex* pindexLastSeason = pindexForkBuffer->pprev;
+            fBIP102FirstBlock = (VersionBitsState(pindexLastSeason, consensusParams, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) != THRESHOLD_ACTIVE);
+        }
     }
 
+    // Max block base size limit
     if (::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) > MaxBlockBaseSize(fSegwitSeasoned))
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false, "size limits failed");
 
+    // First block at fork must be large
+    if (fBIP102FirstBlock) {
+        if (::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) <= MAX_LEGACY_BLOCK_SIZE)
+            return state.DoS(100, false, REJECT_INVALID, "bad-blk-length-toosmall", false, "size limits failed");
+    }
     // No witness data is allowed in blocks that don't commit to witness data, as this would otherwise leave room for spam
     if (!fHaveWitness) {
         for (size_t i = 0; i < block.vtx.size(); i++) {
