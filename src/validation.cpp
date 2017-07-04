@@ -1830,7 +1830,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 //    bool fStrictPayToScriptHash = (pindex->GetBlockTime() >= nBIP16SwitchTime);
 
     unsigned int flags = SCRIPT_VERIFY_P2SH;
-    bool fSegwitSeasoned = false;
+    bool fSegwitSeasoned = true;
 
     // Start enforcing the DERSIG (BIP66) rule
     //if (pindex->nHeight >= chainparams.GetConsensus().BIP66Height) {
@@ -1844,28 +1844,28 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     // Start enforcing BIP68 (sequence locks) and BIP112 (CHECKSEQUENCEVERIFY) using versionbits logic.
     int nLockTimeFlags = 0;
-    if (VersionBitsState(pindex->pprev, chainparams.GetConsensus(), Consensus::DEPLOYMENT_CSV, versionbitscache) == THRESHOLD_ACTIVE) {
+    //if (VersionBitsState(pindex->pprev, chainparams.GetConsensus(), Consensus::DEPLOYMENT_CSV, versionbitscache) == THRESHOLD_ACTIVE) {
         flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
         nLockTimeFlags |= LOCKTIME_VERIFY_SEQUENCE;
-    }
+    //}
 
     // Start enforcing WITNESS rules using versionbits logic.
-    if (IsWitnessEnabled(pindex->pprev, chainparams.GetConsensus())) {
+    //if (IsWitnessEnabled(pindex->pprev, chainparams.GetConsensus())) {
         flags |= SCRIPT_VERIFY_WITNESS;
         flags |= SCRIPT_VERIFY_NULLDUMMY;
-        fSegwitSeasoned = IsWitnessSeasoned(pindex->pprev, chainparams.GetConsensus());
-    }
+    //  fSegwitSeasoned = IsWitnessSeasoned(pindex->pprev, chainparams.GetConsensus());
+    //}
 
-    // SEGWIT2X signalling.
-    if (VersionBitsState(pindex->pprev, chainparams.GetConsensus(), Consensus::DEPLOYMENT_SEGWIT2X, versionbitscache) == THRESHOLD_ACTIVE &&
-        VersionBitsState(pindex->pprev, chainparams.GetConsensus(), Consensus::DEPLOYMENT_SEGWIT,    versionbitscache) == THRESHOLD_STARTED)
-    {
-        bool fVersionBits = (pindex->nVersion & VERSIONBITS_TOP_MASK) == VERSIONBITS_TOP_BITS;
-        bool fSegbit = (pindex->nVersion & VersionBitsMask(chainparams.GetConsensus(), Consensus::DEPLOYMENT_SEGWIT)) != 0;
-        if (!(fVersionBits && fSegbit)) {
-            return state.DoS(0, error("ConnectBlock(): relayed block must signal for segwit, please upgrade"), REJECT_INVALID, "bad-no-segwit");
-        }
-    }
+    // SEGWIT2X signalling. segwit2x actived already, do not need this check
+//    if (VersionBitsState(pindex->pprev, chainparams.GetConsensus(), Consensus::DEPLOYMENT_SEGWIT2X, versionbitscache) == THRESHOLD_ACTIVE &&
+//        VersionBitsState(pindex->pprev, chainparams.GetConsensus(), Consensus::DEPLOYMENT_SEGWIT,    versionbitscache) == THRESHOLD_STARTED)
+//    {
+//        bool fVersionBits = (pindex->nVersion & VERSIONBITS_TOP_MASK) == VERSIONBITS_TOP_BITS;
+//        bool fSegbit = (pindex->nVersion & VersionBitsMask(chainparams.GetConsensus(), Consensus::DEPLOYMENT_SEGWIT)) != 0;
+//        if (!(fVersionBits && fSegbit)) {
+//            return state.DoS(0, error("ConnectBlock(): relayed block must signal for segwit, please upgrade"), REJECT_INVALID, "bad-no-segwit");
+//        }
+//    }
 
     int64_t nTime2 = GetTimeMicros(); nTimeForks += nTime2 - nTime1;
     LogPrint("bench", "    - Fork checks: %.2fms [%.2fs]\n", 0.001 * (nTime2 - nTime1), nTimeForks * 0.000001);
@@ -2930,20 +2930,22 @@ static bool CheckIndexAgainstCheckpoint(const CBlockIndex* pindexPrev, CValidati
 
 bool IsWitnessEnabled(const CBlockIndex* pindexPrev, const Consensus::Params& params)
 {
-    LOCK(cs_main);
-    return (VersionBitsState(pindexPrev, params, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) == THRESHOLD_ACTIVE);
+	return true;
+//    LOCK(cs_main);
+//    return (VersionBitsState(pindexPrev, params, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) == THRESHOLD_ACTIVE);
 }
 
 bool IsWitnessSeasoned(const CBlockIndex* pindexPrev, const Consensus::Params& params)
 {
-    AssertLockHeld(cs_main);
-    assert(pindexPrev);
-
-    const int nHeight = pindexPrev->nHeight + 1;
-
-    const CBlockIndex* pindexForkBuffer = pindexPrev->GetAncestor(nHeight - params.BIP102HeightDelta);
-
-    return (VersionBitsState(pindexForkBuffer, params, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) == THRESHOLD_ACTIVE);
+	return true;
+//    AssertLockHeld(cs_main);
+//    assert(pindexPrev);
+//
+//    const int nHeight = pindexPrev->nHeight + 1;
+//
+//    const CBlockIndex* pindexForkBuffer = pindexPrev->GetAncestor(nHeight - params.BIP102HeightDelta);
+//
+//    return (VersionBitsState(pindexForkBuffer, params, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) == THRESHOLD_ACTIVE);
 }
 
 // Compute at which vout of the block's coinbase transaction the witness
@@ -3053,11 +3055,11 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
     // Enforce rule that the coinbase starts with serialized block height
 //    if (nHeight >= consensusParams.BIP34Height)
 //    {
-//        CScript expect = CScript() << nHeight;
-//        if (block.vtx[0]->vin[0].scriptSig.size() < expect.size() ||
-//            !std::equal(expect.begin(), expect.end(), block.vtx[0]->vin[0].scriptSig.begin())) {
-//            return state.DoS(100, false, REJECT_INVALID, "bad-cb-height", false, "block height mismatch in coinbase");
-//        }
+        CScript expect = CScript() << nHeight;
+        if (block.vtx[0]->vin[0].scriptSig.size() < expect.size() ||
+            !std::equal(expect.begin(), expect.end(), block.vtx[0]->vin[0].scriptSig.begin())) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-cb-height", false, "block height mismatch in coinbase");
+        }
 //    }
 
     // Validation for witness commitments.
@@ -3090,27 +3092,27 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
             fHaveWitness = true;
         }
 
-        // Look back to test SegWit activation period
-        const CBlockIndex* pindexForkBuffer = pindexPrev ? pindexPrev->GetAncestor(nHeight - consensusParams.BIP102HeightDelta) : NULL;
-        fSegwitSeasoned = (VersionBitsState(pindexForkBuffer, consensusParams, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) == THRESHOLD_ACTIVE);
-
-        // Look back one more block, to detect edge
-        if (fSegwitSeasoned) {
-            assert(pindexForkBuffer);
-            const CBlockIndex* pindexLastSeason = pindexForkBuffer->pprev;
-            fBIP102FirstBlock = (VersionBitsState(pindexLastSeason, consensusParams, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) != THRESHOLD_ACTIVE);
-        }
+        // Look back to test SegWit activation period. Disabled since we do not need to find if pindexPrev is the first big block
+//        const CBlockIndex* pindexForkBuffer = pindexPrev ? pindexPrev->GetAncestor(nHeight - consensusParams.BIP102HeightDelta) : NULL;
+//        fSegwitSeasoned = (VersionBitsState(pindexForkBuffer, consensusParams, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) == THRESHOLD_ACTIVE);
+//
+//        // Look back one more block, to detect edge
+//        if (fSegwitSeasoned) {
+//            assert(pindexForkBuffer);
+//            const CBlockIndex* pindexLastSeason = pindexForkBuffer->pprev;
+//            fBIP102FirstBlock = (VersionBitsState(pindexLastSeason, consensusParams, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) != THRESHOLD_ACTIVE);
+//        }
     }
 
     // Max block base size limit
     if (::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) > MaxBlockBaseSize(fSegwitSeasoned))
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false, "size limits failed");
 
-    // First block at fork must be large
-    if (fBIP102FirstBlock) {
-        if (::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) <= MAX_LEGACY_BLOCK_SIZE)
-            return state.DoS(100, false, REJECT_INVALID, "bad-blk-length-toosmall", false, "size limits failed");
-    }
+    // First block at fork must be large. disabled since we do not need check if block is big or not
+//    if (fBIP102FirstBlock) {
+//        if (::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) <= MAX_LEGACY_BLOCK_SIZE)
+//            return state.DoS(100, false, REJECT_INVALID, "bad-blk-length-toosmall", false, "size limits failed");
+//    }
     // No witness data is allowed in blocks that don't commit to witness data, as this would otherwise leave room for spam
     if (!fHaveWitness) {
         for (size_t i = 0; i < block.vtx.size(); i++) {
