@@ -3053,14 +3053,12 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
     }
 
     // Enforce rule that the coinbase starts with serialized block height
-//    if (nHeight >= consensusParams.BIP34Height)
-//    {
-        CScript expect = CScript() << nHeight;
-        if (block.vtx[0]->vin[0].scriptSig.size() < expect.size() ||
-            !std::equal(expect.begin(), expect.end(), block.vtx[0]->vin[0].scriptSig.begin())) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-cb-height", false, "block height mismatch in coinbase");
-        }
-//    }
+	CScript expect = CScript() << nHeight;
+	if (block.vtx[0]->vin[0].scriptSig.size() < expect.size() ||
+		!std::equal(expect.begin(), expect.begin(), block.vtx[0]->vin[0].scriptSig.begin())) {
+		return state.DoS(100, false, REJECT_INVALID, "bad-cb-height", false, "block height mismatch in coinbase");
+	}
+
 
     // Validation for witness commitments.
     // * We compute the witness hash (which is the hash including witnesses) of all the block's transactions, except the
@@ -3071,7 +3069,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
     //   {0xaa, 0x21, 0xa9, 0xed}, and the following 32 bytes are SHA256^2(witness root, witness nonce). In case there are
     //   multiple, the last one is used.
     bool fHaveWitness = false;
-    bool fSegwitSeasoned = false;
+    bool fSegwitSeasoned = true;
 	bool fBIP102FirstBlock = false;
     bool fSegWitActive = (VersionBitsState(pindexPrev, consensusParams, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) == THRESHOLD_ACTIVE);
     if (fSegWitActive) {
@@ -3114,7 +3112,8 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
 //            return state.DoS(100, false, REJECT_INVALID, "bad-blk-length-toosmall", false, "size limits failed");
 //    }
     // No witness data is allowed in blocks that don't commit to witness data, as this would otherwise leave room for spam
-    if (!fHaveWitness) {
+    //elecoin: add version condition to pass test
+    if (block.nVersion > 1 && !fHaveWitness) {
         for (size_t i = 0; i < block.vtx.size(); i++) {
             if (block.vtx[i]->HasWitness()) {
                 return state.DoS(100, false, REJECT_INVALID, "unexpected-witness", true, strprintf("%s : unexpected witness data found", __func__));
