@@ -3055,10 +3055,9 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
     // Enforce rule that the coinbase always starts with serialized block height
 	CScript expect = CScript() << nHeight;
 	if (block.vtx[0]->vin[0].scriptSig.size() < expect.size() ||
-		!std::equal(expect.begin(), expect.begin(), block.vtx[0]->vin[0].scriptSig.begin())) {
+		!std::equal(expect.begin(), expect.end(), block.vtx[0]->vin[0].scriptSig.begin())) {
 		return state.DoS(100, false, REJECT_INVALID, "bad-cb-height", false, "block height mismatch in coinbase");
 	}
-
 
     // Validation for witness commitments.
     // * We compute the witness hash (which is the hash including witnesses) of all the block's transactions, except the
