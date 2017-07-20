@@ -45,21 +45,20 @@ struct {
 	{0, 1253449390},{1, 1713920343},{0, 379966916 },{1, 378581818 },
 	{1, 640237221 },{1, 3705135548},{0, 2747182438},{0, 1918401500},
 	{1, 1419523428},{0, 2716885730},{0, 795369948 },{2, 184870252 },
-	{0, 2164058456},{0, 3119210433},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0}, {0, 0}, {0, 0},
-    {0, 0}, {0, 0},
+	{0, 2164058456},{0, 3119210433},{1, 379832523}, {0, 2539718713},
+	{5, 2098549650},{1, 366943874 },{2, 1107567295},{1, 4000319261},
+	{4, 2469966074},{1, 4150177258},{4, 3371065072},{4, 238626952 },
+	{4, 321500566 },{1, 1552679812},{2, 344749004 },{2, 3183168651},
+	{2, 2665772536},{3, 258133626 },{6, 3906890719},{5, 532700935 },
+	{4, 1227523907},{5, 3329484607},{0, 1677272173},{1, 963986089 },
+	{3, 3872818766},{2, 3192742674},{4, 2847592534},{1, 123781353 },
+	{1, 1550240378},{2, 664406263 },{3, 2985816176},{5, 2946889912},
+	{4, 1642946894},{1, 184856331 },{0, 3326542199},{0, 1763618699},
+	{1, 3796427083},{3, 2482737892},{4, 1412445061}, {6,757763766 },
+	{7, 1860280875},{1, 2448060611},{0, 1623020908},{2, 2504618262},
+	{2, 3767420895},{2, 1628238508},{1, 1843783712},{1, 1569479422},
+	{5, 2561482212},{4, 4081179254},{3, 2503651840},{2, 955026203 },
+	{1, 2359704563},{4, 3540529562},{3, 2348606529},{0, 2369649509},
 };
 CBlockIndex CreateBlockIndex(int nHeight)
 {
@@ -229,11 +228,11 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
 		while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, chainparams.GetConsensus())){
 			pblock->nNonce = pblock->nNonce + 1;
 			if (pblock->nNonce % 100000000 == 0)
-				//BOOST_ERROR(std::to_string(pblock->nNonce));
+				BOOST_ERROR(std::to_string(pblock->nNonce));
 				//when nonce overflow
 				if (pblock->nNonce == 0){
 					blockinfo[i].extranonce = blockinfo[i].extranonce + 1;
-					//BOOST_ERROR("nonce overflow increased extranonce to " + std::to_string(blockinfo[i].extranonce) + " for i" + std::to_string(i));
+					BOOST_ERROR("nonce overflow increased extranonce to " + std::to_string(blockinfo[i].extranonce) + " for i" + std::to_string(i));
 					goto begin;
 				}
 
@@ -278,7 +277,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
         mempool.addUnchecked(hash, entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(spendsCoinbase).FromTx(tx));
         tx.vin[0].prevout.hash = hash;
     }
-   // BOOST_CHECK_THROW(BlockAssembler(chainparams).CreateNewBlock(scriptPubKey), std::runtime_error);
+    BOOST_CHECK_THROW(BlockAssembler(chainparams).CreateNewBlock(scriptPubKey), std::runtime_error);
     mempool.clear();
 
     tx.vin[0].prevout.hash = txFirst[0]->GetHash();
@@ -292,7 +291,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
         mempool.addUnchecked(hash, entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(spendsCoinbase).SigOpsCost(80).FromTx(tx));
         tx.vin[0].prevout.hash = hash;
     }
-    // BOOST_CHECK(pblocktemplate = BlockAssembler(chainparams).CreateNewBlock(scriptPubKey)); TODO
+    BOOST_CHECK(pblocktemplate = BlockAssembler(chainparams).CreateNewBlock(scriptPubKey));
     mempool.clear();
 
     // block size > limit
